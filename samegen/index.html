@@ -1,0 +1,249 @@
+<html lang="en" prefix="ogp: https://ogp.me/ns#">
+  <head>
+    <title>SAMEgen || Tools :: Sanel Kukic</title>
+    <meta charset="utf-8" http-equiv="encoding"/>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="theme-color" content="#000084" />
+    <link rel="icon" href="/favicon.ico">
+    <link rel="canonical" href="https://tools.sanelkukic.us.eu.org/samegen">
+    <meta name="description" content="Utility to generate AFSK audio files containing SAME (Specific Area Message Encoding) headers."/>
+    <meta property="og:title" content="SAMEgen || Tools :: Sanel Kukic"/>
+    <meta property="og:description" content="Utility to generate AFSK audio files containing SAME (Specific Area Message Encoding) headers."/>
+    <meta property="og:url" content="https://tools.sanelkukic.us.eu.org/samegen"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:locale" content="en_US"/>
+    <meta property="og:image" content=" /favicon.ico"/>
+    <meta property="og:image:alt" content="Site Favicon"/>
+    <script src="js/lib/SAME.js"></script>
+    <script type="text/javascript">
+      var Encoder = window.SAME.Encoder;
+      var Writer = window.SAME.Writer;
+      document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById("wav").hidden = true;
+      });
+
+      window.utcRightNow = function() {
+        var now = new Date()
+          , monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+          , utcYear = now.getUTCFullYear()
+          , isUTCLeapYear = (utcYear % 4 === 0 || utcYear % 100 === 0 || utcYear % 400 === 0)
+          , utcJulianDay = now.getUTCDate();
+
+        if (isUTCLeapYear) {
+          monthDays[1] = 29;
+        }
+
+        for (var m = 0; m < now.getUTCMonth(); m++) {
+          utcJulianDay += monthDays[m];
+        }
+
+        return {
+          day: utcJulianDay,
+          hour: now.getUTCHours(),
+          minute: now.getUTCMinutes()
+        };
+      };
+
+      window.genEAS = function genEAS() {
+        if (document.getElementById("current").checked == true) {
+          var startData = window.utcRightNow();
+        } else {
+          var startData = {
+            day: parseInt(document.getElementById("startDay").value),
+            hour: parseInt(document.getElementById("startHour").value),
+            minute: parseInt(document.getElementById("startMin").value)
+          };
+        }
+        var message = {
+          originator: document.getElementById("originator").value,
+          code: document.getElementById("event").value,
+          region: {
+            subdiv: document.getElementById("subdiv").value,
+            stateCode: document.getElementById("state").value,
+            countyCode: document.getElementById("county").value
+          },
+          length: parseInt(document.getElementById("length").value),
+          start: startData,
+          sender: document.getElementById("sender").value
+        };
+        document.querySelector("pre#obj").innerHTML =
+          JSON.stringify(message, false, 2);
+          var player = Writer.write(Encoder.encode(message), "div#player");
+        document.getElementById("wav").onclick = function() {
+          var link = document.createElement("a");
+          link.download = "output.wav";
+          link.href = player.querySelector("source").src;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          delete link;
+        }
+        document.getElementById("wav").hidden = false;
+        //document.getElementById("wav").href = player.querySelector("source").src;
+        //document.querySelector("button#wav").href = player.querySelector("source").src;
+      }
+
+      window.hideTimeInput = function() {
+        if (document.getElementById("startDay").disabled == true) {
+          document.getElementById("startDay").disabled = false;
+          document.getElementById("startHour").disabled = false;
+          document.getElementById("startMin").disabled = false;
+        } else {
+          document.getElementById("startDay").disabled = true;
+          document.getElementById("startHour").disabled = true;
+          document.getElementById("startMin").disabled = true;
+        }
+      }
+    </script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <h1 class="text-center">SAMEgen</h1>
+      <div class="container-md">
+        <p class="lead">This tool lets you input data to generate audio files containing valid AFSK-encoded SAME headers, similar to the ones used in the real-life Emergency Alert System in the United States.</p>
+        <br>
+        <div class="alert alert-danger" role="alert">
+          <b>WARNING:</b> Do <u>NOT</u> broadcast these audio files over any television station(s), radio station(s), or cable system(s). Doing so may result in an actual activation of the Emergency Alert System, and will result in severe penalties being assessed upon you by the Federal Communications Commission. I am not responsible nor liable in any way, shape, or form if you do broadcast these audio files.
+        </div>
+        <br>
+        <div class="alert alert-primary" role="alert">
+          I highly recomend that you read this <a href="https://github.com/sanelk2004/tools.sanelkukic.us.eu.org/wiki/SAMEgen">documentation</a> on SAMEgen before using this tool, so that you at least somewhat know what you're doing.
+        </div>
+      </div>
+      <br>
+      <div class="container-lg">
+        <div class="form-floating">
+          <select class="form-select" id="originator" name="originator" aria-label="Originator" required>
+            <option value="PEP">Primary Entry Point System</option>
+            <option value="EAS">EAS Participant</option>
+            <option value="WXR">NWS / NOAA / NOAA Weather Radio</option>
+            <option value="CIV">Civil Authorities</option>
+          </select>
+          <label for="originator">Select an originator</label>
+        </div>
+        <br>
+        <div class="form-floating">
+          <select class="form-select" id="event" name="event" aria-label="Event" required>
+            <option value="EAN">Emergency Action Notification</option>
+            <option value="EAT">Emergency Action Termination</option>
+            <option value="NIC">National Information Center Message</option>
+            <option value="NPT">National Periodic Test</option>
+            <option value="RMT">Required Monthly Test</option>
+            <option value="RWT">Required Weekly Test</option>
+            <option value="ADR">Administrative Message</option>
+            <option value="AVW">Avalanche Warning</option>
+            <option value="AVA">Avalanche Watch</option>
+            <option value="BZW">Blizzard Warning</option>
+            <option value="CAE">Child Abduction Emergency</option>
+            <option value="CDW">Civil Danger Warning</option>
+            <option value="CEM">Civil Emergency Message</option>
+            <option value="CFW">Coastal Flood Warning</option>
+            <option value="CFA">Coastal Flood Watch</option>
+            <option value="DSW">Dust Storm Warning</option>
+            <option value="EQW">Earthquake Warning</option>
+            <option value="EVI">Evacuation Immediate</option>
+            <option value="FRW">Fire Warning</option>
+            <option value="FFW">Flash Flood Warning</option>
+            <option value="FFA">Flash Flood Watch</option>
+            <option value="FFS">Flash Flood Statement</option>
+            <option value="FLW">Flood Warning</option>
+            <option value="FLA">Flood Watch</option>
+            <option value="FLS">Flood Statement</option>
+            <option value="HMW">Hazardous Materials Warning</option>
+            <option value="HWW">High Wind Warning</option>
+            <option value="HWA">High Wind Watch</option>
+            <option value="HUW">Hurricane Warning</option>
+            <option value="HUA">Hurricane Watch</option>
+            <option value="HLS">Hurricane Statement</option>
+            <option value="LEW">Law Enforcement Warning</option>
+            <option value="LAE">Local Area Emergency</option>
+            <option value="NMN">Network Message Notification</option>
+            <option value="TOE">911 Telephone Outage Emergency</option>
+            <option value="NUW">Nuclear Power Plant Warning</option>
+            <option value="DMO">Practice/Demo Warning</option>
+            <option value="RHW">Radiological Hazard Warning</option>
+            <option value="SVR">Severe Thunderstorm Warning</option>
+            <option value="SVA">Severe Thunderstorm Watch</option>
+            <option value="SVS">Severe Weather Statement</option>
+            <option value="SPW">Shelter-in-Place Warning</option>
+            <option value="SMW">Special Marine Warning</option>
+            <option value="SPS">Special Weather Statement</option>
+            <option value="TOR">Tornado Warning</option>
+            <option value="TOA">Tornado Watch</option>
+            <option value="TRW">Tropical Storm Warning</option>
+            <option value="TRA">Tropical Storm Watch</option>
+            <option value="TSW">Tsunami Warning</option>
+            <option value="TSA">Tsunami Watch</option>
+            <option value="VOW">Volcano Warning</option>
+            <option value="WSW">Winter Storm Warning</option>
+            <option value="WSA">Winter Storm Watch</option>
+          </select>
+          <label for="event">Select an event type</label>
+        </div>
+        <br>
+        <div class="form-floating">
+          <select class="form-select" id="subdiv" name="subdiv" aria-label="Subdivision" required>
+            <option value="0">Entire region</option>
+            <option value="1">Northwest</option>
+            <option value="2">North</option>
+            <option value="3">Northeast</option>
+            <option value="4">West</option>
+            <option value="5">Central</option>
+            <option value="6">East</option>
+            <option value="7">Southwest</option>
+            <option value="8">South</option>
+            <option value="9">Southeast</option>
+          </select>
+          <label for="subdiv">Select a subdivision</label>
+        </div>
+        <br>
+        <div class="form-floating">
+          <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">State FIPS Code</span>
+            <input type="text" id="state" class="form-control" placeholder="00" aria-label="State FIPS code" aria-describedby="basic-addon1" required>
+            <span class="input-group-text" id="basic-addon2">County FIPS Code</span>
+            <input type="text" id="county" class="form-control" placeholder="00" aria-label="County FIPS code" aria-describedby="basic-addon2" required>
+          </div>
+          <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon3">Length</span>
+            <input type="text" id="length" class="form-control" placeholder="0030" aria-label="Length" aria-describedby="basic-addon3" required>
+            <span class="input-group-text" id="basic-addon6">Sender</span>
+            <input type="text" id="sender" class="form-control" placeholder="WHITEHSE" aria-label="Sender" aria-describedby="basic-addon6" required>
+          </div>
+          <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon4">Start day</span>
+            <input type="text" id="startDay" class="form-control" placeholder="" aria-label="Start day" aria-describedby="basic-addon4" required>
+            <span class="input-group-text" id="basic-addon5">Start hour</span>
+            <input type="text" id="startHour" class="form-control" placeholder="" aria-label="Start hour" aria-describedby="basic-addon5" required>
+            <span class="input-group-text" id="basic-addon6">Start minute</span>
+            <input type="text" id="startMin" class="form-control" placeholder="" aria-label="Start minute" aria-describedby="basic-addon5" required>
+            <div class="input-group-text">
+              <input type="checkbox" id="current" onclick="hideTimeInput()" value="" class="form-check-input mt-0" aria-label="Use current date/time"> Use current date/time</input>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="genEAS()">Generate SAME headers</button>
+        </div>
+        <br>
+        <div class="card">
+          <div class="card-header">
+            Output
+          </div>
+          <div class="card-body">
+            <p>JSON output:</p>
+            <pre id="obj"></pre>
+            <br>
+            <p>Audio file:</p>
+            <div id="player"></div>
+            <br>
+            <button type="button" class="btn btn-primary" id="wav">Download audio file</button>
+            <!--<a href="" id="wav" download="output.wav">Download audio file</a>-->
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
