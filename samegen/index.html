@@ -46,6 +46,14 @@
         };
       };
 
+      window.prependZero = function prependZero(number) {
+        if (parseInt(number) < 10) {
+          return "0" + number.toString();
+        } else {
+          return number.toString();
+        }
+      };
+
       window.genEAS = function genEAS() {
         if (document.getElementById("current").checked == true) {
           var startData = window.utcRightNow();
@@ -68,9 +76,23 @@
           start: startData,
           sender: document.getElementById("sender").value
         };
+        var EAS_ORIGINATOR = document.getElementById("originator").value.toUpperCase();
+        var EAS_EVENT_CODE = document.getElementById("event").value.toUpperCase();
+        var EAS_REGION = document.getElementById("subdiv").value + "" + document.getElementById("state").value + "" + document.getElementById("county").value;
+        var EAS_LENGTH = document.getElementById("length").value;
+        var EAS_CREATION;
+        if (document.getElementById("current").checked == true) {
+          var WINDOW_UTCNOW = window.utcRightNow();
+          EAS_CREATION = window.prependZero(WINDOW_UTCNOW.day.toString()) + window.prependZero(WINDOW_UTCNOW.hour.toString()) + window.prependZero(WINDOW_UTCNOW.minute.toString());
+        } else {
+          EAS_CREATION = window.prependZero(document.getElementById("startDay").value.toString()) + window.prependZero(document.getElementById("startHour").value.toString()) + window.prependZero(document.getElementById("startMin").value.toString());
+        }
+        var EAS_SENDER = document.getElementById("sender").value;
+        var EAS_FINAL_DECODED = "[PREAMBLE]ZCZC-"+EAS_ORIGINATOR+"-"+EAS_EVENT_CODE+"-"+EAS_REGION+"+"+EAS_LENGTH+"-"+EAS_CREATION+"-"+EAS_SENDER+"-";
         document.querySelector("pre#obj").innerHTML =
           JSON.stringify(message, false, 2);
           var player = Writer.write(Encoder.encode(message), "div#player");
+        document.getElementById("dsc").innerHTML = EAS_FINAL_DECODED;
         document.getElementById("wav").onclick = function() {
           var link = document.createElement("a");
           link.download = "output.wav";
@@ -104,7 +126,7 @@
     <div class="container-fluid">
       <h1 class="text-center">SAMEgen</h1>
       <div class="container-md">
-        <p class="lead">This tool lets you input data to generate audio files containing valid AFSK-encoded SAME headers, similar to the ones used in the real-life Emergency Alert System in the United States.</p>
+        <p class="lead">This tool lets you input data to generate audio files containing valid <abbr title="Audio Frequency-Shift Keying">AFSK</abbr>-encoded <abbr title="Specific Area Message Encoding">SAME</abbr> headers, similar to the ones used in the real-life Emergency Alert System in the United States.</p>
         <br>
         <div class="alert alert-danger" role="alert">
           <b>WARNING:</b> Do <u>NOT</u> broadcast these audio files over any television station(s), radio station(s), or cable system(s). Doing so may result in an actual activation of the Emergency Alert System, and will result in severe penalties being assessed upon you by the Federal Communications Commission. I am not responsible nor liable in any way, shape, or form if you do broadcast these audio files.
@@ -120,7 +142,7 @@
           <select class="form-select" id="originator" name="originator" aria-label="Originator" required>
             <option value="PEP">Primary Entry Point System</option>
             <option value="EAS">EAS Participant</option>
-            <option value="WXR">NWS / NOAA / NOAA Weather Radio</option>
+            <option value="WXR">National Weather Service</option>
             <option value="CIV">Civil Authorities</option>
           </select>
           <label for="originator">Select an originator</label>
@@ -203,10 +225,10 @@
         <br>
         <div class="form-floating">
           <div class="input-group mb-3">
-            <span class="input-group-text" id="basic-addon1">State FIPS Code</span>
+            <span class="input-group-text" id="basic-addon1">State Code (<abbr title="Federal Information Processing Standards">FIPS</abbr>)</span>
             <input type="text" id="state" class="form-control" placeholder="00" aria-label="State FIPS code" aria-describedby="basic-addon1" required>
-            <span class="input-group-text" id="basic-addon2">County FIPS Code</span>
-            <input type="text" id="county" class="form-control" placeholder="00" aria-label="County FIPS code" aria-describedby="basic-addon2" required>
+            <span class="input-group-text" id="basic-addon2">County Code (<abbr title="Federal Information Processing Standards">FIPS</abbr>)</span>
+            <input type="text" id="county" class="form-control" placeholder="000" aria-label="County FIPS code" aria-describedby="basic-addon2" required>
           </div>
           <div class="input-group mb-3">
             <span class="input-group-text" id="basic-addon3">Length</span>
@@ -225,7 +247,7 @@
               <input type="checkbox" id="current" onclick="hideTimeInput()" value="" class="form-check-input mt-0" aria-label="Use current date/time"> Use current date/time</input>
             </div>
           </div>
-          <button type="button" class="btn btn-primary" onclick="genEAS()">Generate SAME headers</button>
+          <button type="button" class="btn btn-primary" onclick="genEAS()">Generate <abbr title="Specific Area Message Encoding">SAME</abbr> headers</button>
         </div>
         <br>
         <div class="card">
@@ -233,18 +255,21 @@
             Output
           </div>
           <div class="card-body">
-            <p>JSON output:</p>
+            <p><abbr title="JavaScript Object Notation">JSON</abbr> output:</p>
             <pre id="obj"></pre>
+            <br>
+            <p><a href="https://www.govinfo.gov/content/pkg/CFR-2004-title47-vol1/html/CFR-2004-title47-vol1-sec11-31.htm">Decoded <abbr title="Audio Frequency-Shift Keying">AFSK</abbr> audio content:</a></p>
+            <pre id="dsc"></pre>
             <br>
             <p>Audio file:</p>
             <div id="player"></div>
             <br>
-            <button type="button" class="btn btn-primary" id="wav">Download audio file</button>
-            <!--<a href="" id="wav" download="output.wav">Download audio file</a>-->
+            <button type="button" class="btn btn-success" id="wav">Download audio file</button>
           </div>
         </div>
         <br>
-        <button type="button" class="btn btn-primary" href="#" onclick="window.location = 'https://tools.sanelkukic.us.eu.org'">Go back to Tools homepage</button>
+        <button type="button" class="btn btn-danger" href="#" onclick="window.location.reload()">Clear</button>
+        <button type="button" class="btn btn-secondary" href="#" onclick="window.location = 'https://tools.sanelkukic.us.eu.org'">Go back to Tools homepage</button>
       </div>
     </div>
   </body>
