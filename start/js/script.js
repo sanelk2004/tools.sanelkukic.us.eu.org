@@ -54,7 +54,8 @@ var settings = {
 			["https://snopes.com", "s", "Snopes", "ss"],
 			["https://youtube.com/results", "search_query", "YouTube", "st"],
 			["https://duckduckgo.com", "q", "DuckDuckGo", "su"],
-			["https://steamdb.info/instantsearch", "query", "SteamDB", "sq"]
+			["https://steamdb.info/instantsearch", "query", "SteamDB", "sq"],
+			["https://lmgtfy.com", "q", "LMGTFY", "sh"]
 		],
 		"focusSearch": false
 	},
